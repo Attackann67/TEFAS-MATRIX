@@ -165,7 +165,10 @@ def _compute_me_from_prices(info: Dict[_dt.date, pd.DataFrame]):
     """Tarih bazlı fiyat sheet'lerinden 1G/7G/15G ME hesaplar.
 
     Hedef boşluklar (1,7,15 gün) için T tarihine en yakın sheet seçilir;
-    yıllıklandırmada nominal gün (1/7/15) kullanılır (TEFAS konvansiyonu).
+    yıllıklandırmada referans ile T arasındaki **gerçek gün sayısı** kullanılır.
+    Tatil/hafta sonu nedeniyle gerçek boşluk nominalden farklı olabilir
+    (ör. 19 Mayıs tatilinde 7G aslında 8 gündür) -> nominal gün kullanmak
+    getiriyi yanlış yıllıklandırır.
     """
     dates = sorted(info)
     T = dates[-1]
@@ -195,7 +198,8 @@ def _compute_me_from_prices(info: Dict[_dt.date, pd.DataFrame]):
             if not (p_t > 0 and p_ref > 0):
                 ok = False
                 break
-            me[period] = mevduat_esligi(p_t, p_ref, gap)
+            actual_days = (T - ref_date).days  # tatil/hafta sonu telafili
+            me[period] = mevduat_esligi(p_t, p_ref, actual_days)
         if ok:
             me_by_code[code] = me
     name_by_code = {c: (str(name_col[c]) if name_col is not None and c in name_col.index else c)
