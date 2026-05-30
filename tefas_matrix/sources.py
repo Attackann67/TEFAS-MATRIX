@@ -190,6 +190,11 @@ def _compute_me_from_prices(info: Dict[_dt.date, pd.DataFrame]):
                 break
             p_t = float(price_T[code])
             p_ref = float(info[ref_date]["Fiyat"][code])
+            # Canlı veride bazı fonların belirli tarihte fiyatı 0/NaN
+            # gelebilir (yeni kurulan fon vb.) -> ME hesaplanamaz, fonu atla.
+            if not (p_t > 0 and p_ref > 0):
+                ok = False
+                break
             me[period] = mevduat_esligi(p_t, p_ref, gap)
         if ok:
             me_by_code[code] = me
@@ -218,11 +223,74 @@ def filter_ppf(records: Dict[str, FundRecord],
 # 2) Canlı çekim (tefas-crawler)
 # ---------------------------------------------------------------------------
 
-def from_live(asof: Optional[str] = None,
-              fund_limit: int = 400) -> Dict[str, FundRecord]:
-    """tefas-crawler ile canlı fiyat çekip ME hesaplar.
+# Liste endpoint'i PPF evrenini tek istekte (kod + ad + tür) döndürür;
+# böylece yalnızca para piyasası fonları için fiyat çekilir. Yeni TEFAS
+# API'si toplu (bulk-by-date) sorguyu artık desteklemiyor (boş döner) ve
+# isimsiz `fetch` ~400 fon × her tarih için bir HTTP isteğine açılıp
+# hız sınırına (503 -> 403) takılıyor. Bu yüzden önce evreni daraltıp
+# fon başına zaman serisini throttle'lı çekiyoruz.
+_LIST_PAYLOAD = {
+    "dil": "TR", "fonTipi": "YAT", "kurucuKodu": None, "sfonTurKod": None,
+    "fonTurAciklama": None, "islem": 1, "fonTurKod": None, "fonGrubu": None,
+    "donemGetiri1a": "1", "donemGetiri3a": "1", "donemGetiri6a": "1",
+    "donemGetiri1y": "1", "donemGetiriyb": "1", "donemGetiri3y": "1",
+    "donemGetiri5y": "1", "basTarih": None, "bitTarih": None,
+    "calismaTipi": 2, "getiriOrani": "1",
+}
 
-    asof: 'YYYY-MM-DD' (T günü). None ise en son iş günü denenir.
+
+def _list_ppf_funds(crawler, name_filter: str = config.NAME_FILTER):
+    """Liste endpoint'inden para piyasası fonlarını (kod, ad) döndürür.
+
+    Tek HTTP isteği; adında `name_filter` (varsayılan 'PARA PİYASASI')
+    geçen YAT fonlarını süzer.
+    """
+    rows = crawler._do_post(crawler.list_endpoint, _LIST_PAYLOAD)
+    nf = name_filter.upper()
+    out = []
+    for r in rows:
+        name = str(r.get("fonUnvan", "")).strip()
+        code = r.get("fonKodu")
+        if code and nf in name.upper():
+            out.append((str(code).strip(), name))
+    return out
+
+
+def _fetch_series_throttled(crawler, code, start, end,
+                            delay=0.25, retries=4):
+    """Tek fonun fiyat zaman serisini hız sınırına dayanıklı çeker.
+
+    503/403 (rate-limit) durumunda üstel backoff (2s,4s,8s,16s) ile yeniden
+    dener. Her çağrı arasında `delay` saniye bekleyerek flood'u önler.
+    """
+    import time
+    from requests.exceptions import HTTPError
+
+    for attempt in range(retries + 1):
+        try:
+            df = crawler.fetch(start=start.isoformat(), end=end.isoformat(),
+                               name=code, columns=["code", "date", "title", "price"])
+            time.sleep(delay)
+            return df
+        except HTTPError as e:
+            status = getattr(e.response, "status_code", None)
+            if status in (403, 503) and attempt < retries:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise
+
+
+def from_live(asof: Optional[str] = None,
+              delay: float = 0.25) -> Dict[str, FundRecord]:
+    """tefas-crawler ile canlı fiyat çekip ME hesaplar (throttle'lı).
+
+    Önce liste endpoint'inden para piyasası fonu evrenini (tek istek) alır,
+    sonra yalnızca bu fonlar için fiyat zaman serisini fon başına bir istekle,
+    hız sınırına dayanıklı (gecikme + backoff) çeker. Eski toplu fan-out
+    (~400 fon × her tarih) TEFAS tarafından 503/403 ile sınırlandığından
+    kullanılmaz.
+
+    asof: 'YYYY-MM-DD' (T günü). None ise bugün denenir.
     NOT: Yeni TEFAS API'si yalnızca fiyat döndürür; fon büyüklüğü, kişi
     sayısı ve portföy dağılımı public olarak gelmez -> bu alanlar None
     kalır ve Sheet 2 'PD YOK' olarak işaretlenir. Bu veriler için TEFAS
@@ -238,31 +306,35 @@ def from_live(asof: Optional[str] = None,
     while T.weekday() >= 5:
         T -= _dt.timedelta(days=1)
 
-    gaps = {p: _dt.timedelta(days=g) for p, g in config.PERIOD_DAYS.items()}
-    needed = {T}
-    for g in gaps.values():
-        needed.add(_business_day_on_or_before(T - g))
+    # En uzun dönem (15G) + tatil/hafta sonu payı kadar geriye git.
+    max_gap = max(config.PERIOD_DAYS.values())
+    window_start = T - _dt.timedelta(days=max_gap + 12)
 
-    crawler = Crawler(fund_limit=fund_limit)
-    prices: Dict[_dt.date, pd.DataFrame] = {}
-    for d in sorted(needed):
-        df = crawler.fetch(start=d.isoformat(),
-                           columns=["code", "title", "price"])
-        if df is not None and not df.empty:
-            prices[d] = df.set_index("code")
+    crawler = Crawler()
+    ppf = _list_ppf_funds(crawler)
+    if not ppf:
+        raise RuntimeError("Liste endpoint'inden hiç para piyasası fonu gelmedi.")
 
-    if T not in prices:
-        raise RuntimeError(f"{T} için TEFAS fiyatı alınamadı.")
+    # (code, date, price, title) uzun tablosu -> tarih bazlı panel
+    rows: List[dict] = []
+    for code, _name in ppf:
+        df = _fetch_series_throttled(crawler, code, window_start, T, delay=delay)
+        if df is None or df.empty:
+            continue
+        for rec in df.to_dict("records"):
+            rows.append(rec)
 
-    # tarih -> df sözlüğünü info benzeri yapıya çevirip ME hesapla
-    info_like = {d: prices[d].rename(columns={"price": "Fiyat", "title": "Fon Adı"})
-                 for d in prices}
+    if not rows:
+        raise RuntimeError(f"{T} civarı için hiç PPF fiyatı alınamadı.")
+
+    panel = pd.DataFrame(rows)
+    panel = panel[panel["date"] <= T]
+    info_like: Dict[_dt.date, pd.DataFrame] = {}
+    for d, grp in panel.groupby("date"):
+        df_d = grp.rename(columns={"price": "Fiyat", "title": "Fon Adı"})
+        df_d = df_d.drop_duplicates(subset="code", keep="last").set_index("code")
+        info_like[d] = df_d[["Fiyat", "Fon Adı"]]
+
     me_by_code, name_by_code, _ = _compute_me_from_prices(info_like)
     return {c: FundRecord(code=c, name=name_by_code.get(c, c), me=me)
             for c, me in me_by_code.items()}
-
-
-def _business_day_on_or_before(d: _dt.date) -> _dt.date:
-    while d.weekday() >= 5:
-        d -= _dt.timedelta(days=1)
-    return d
