@@ -1,0 +1,4 @@
+pandas>=2.0
+openpyxl>=3.1
+# Canlı çekim için (opsiyonel — TEFAS erişimi gerekir):
+tefas-crawler>=0.6.0

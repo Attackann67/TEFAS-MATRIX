@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Kaynak/çıktı veri dosyaları (fon verisi paylaşılmaz)
+*.xlsx
+!tests/fixtures/*.xlsx
+out/
