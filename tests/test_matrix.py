@@ -68,12 +68,29 @@ def test_write_workbook_formulas(tmp_path):
     out = tmp_path / "m.xlsx"
     write_workbook(df, str(out), asof="2026-01-01")
     wb = load_workbook(out)
-    assert wb.sheetnames == ["PPF Mevduat Eşleniği", "Portföy Dağılım"]
+    assert wb.sheetnames == ["Dashboard", "PPF Mevduat Eşleniği", "Portföy Dağılım"]
+    assert wb.active.title == "Dashboard"
     ws = wb["PPF Mevduat Eşleniği"]
     # AĞIRLIKLI ORT formül olmalı, hardcoded değil
     assert str(ws["J6"].value).startswith("=D6*$E$3")
     # ağırlık input hücreleri
     assert ws["E3"].value == 0.5
+
+
+def test_write_html_dashboard(tmp_path):
+    from tefas_matrix import write_html_dashboard
+
+    df = build_matrix(_records())
+    out = tmp_path / "dash.html"
+    write_html_dashboard(df, str(out), asof="2026-01-01")
+    doc = out.read_text(encoding="utf-8")
+    assert "<!DOCTYPE html>" in doc
+    assert "Mevduat Eşleniği Dashboard" in doc
+    # tablo verisi gömülü ve fon kodları geçiyor
+    for code in df["Fon Kodu"]:
+        assert code in doc
+    # KPI: fon sayısı
+    assert "Fon Sayısı" in doc
 
 
 @pytest.mark.skipif(

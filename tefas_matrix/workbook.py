@@ -11,6 +11,7 @@ from typing import Dict
 
 import pandas as pd
 from openpyxl import Workbook
+from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
@@ -40,10 +41,88 @@ def write_workbook(df: pd.DataFrame, out_path: str, *,
                    asof: str = "") -> str:
     weights = weights or config.WEIGHTS
     wb = Workbook()
-    _write_sheet1(wb.active, df, weights, asof)
+    _write_dashboard(wb.active, df, weights, asof)   # ilk (aktif) sheet
+    _write_sheet1(wb.create_sheet("PPF Mevduat Eşleniği"), df, weights, asof)
     _write_sheet2(wb.create_sheet("Portföy Dağılım"), df)
     wb.save(out_path)
     return out_path
+
+
+# ---------------------------------------------------------------------------
+def _write_dashboard(ws, df, weights, asof):
+    """Özet panel: KPI bloğu, ilk 10 fon mini-tablosu ve gömülü bar grafik."""
+    ws.title = "Dashboard"
+    ws.sheet_view.showGridLines = False
+
+    title = "TEFAS PPF — Mevduat Eşleniği Dashboard" + (f"  ({asof})" if asof else "")
+    ws["A1"] = title
+    ws["A1"].font = Font(bold=True, size=15, color="FF002060")
+    ws.merge_cells("A1:D1")
+
+    wavg = df["AĞIRLIKLI ORT"]
+    best, worst = df.iloc[0], df.iloc[-1]
+    kpis = [
+        ("Fon Sayısı", len(df), _NUM),
+        ("Ortalama Mevd. Eşl.", float(wavg.mean()), _PCT),
+        ("Medyan Mevd. Eşl.", float(wavg.median()), _PCT),
+        (f"En Yüksek ({best['Fon Kodu']})", float(best["AĞIRLIKLI ORT"]), _PCT),
+        (f"En Düşük ({worst['Fon Kodu']})", float(worst["AĞIRLIKLI ORT"]), _PCT),
+        ("Aralık (maks–min)", float(best["AĞIRLIKLI ORT"] - worst["AĞIRLIKLI ORT"]), _PCT),
+        ("Ağırlıklar 1G/7G/15G",
+         f"{weights['1G']:.0%} / {weights['7G']:.0%} / {weights['15G']:.0%}", None),
+    ]
+    r0 = 3
+    for k, (label, value, fmt) in enumerate(kpis):
+        lr = r0 + k
+        lc = ws.cell(row=lr, column=1, value=label)
+        lc.font = Font(bold=True, color="FF5B6472")
+        lc.fill = _fill("FFF2F5FA")
+        vc = ws.cell(row=lr, column=3, value=value)
+        vc.font = Font(bold=True, size=12, color="FF002060")
+        if fmt:
+            vc.number_format = fmt
+        ws.merge_cells(start_row=lr, start_column=3, end_row=lr, end_column=4)
+
+    # İlk 10 fon mini-tablosu (grafik için de veri kaynağı)
+    n = min(10, len(df))
+    hr = r0 + len(kpis) + 1          # başlık satırı
+    mini_hdr = ["Sıra", "Kod", "Fon Adı", "Ağ. Ort."]
+    for j, h in enumerate(mini_hdr, start=1):
+        c = ws.cell(row=hr, column=j, value=h)
+        c.fill = _fill(config.HEADER_FILL)
+        c.font = Font(bold=True, color="FFFFFFFF")
+        c.alignment = Alignment(horizontal="center")
+    for i in range(n):
+        r = df.iloc[i]
+        row = hr + 1 + i
+        rank = int(r["Sıra"])
+        ws.cell(row=row, column=1, value=rank)
+        ws.cell(row=row, column=2, value=str(r["Fon Kodu"])).font = Font(bold=True)
+        ws.cell(row=row, column=3, value=str(r["Fon Adı"]))
+        vc = ws.cell(row=row, column=4, value=float(r["AĞIRLIKLI ORT"]))
+        vc.number_format = _PCT
+        fill = _fill(_rank_fill(rank))
+        for j in range(1, 5):
+            ws.cell(row=row, column=j).fill = fill
+
+    # Gömülü bar grafik (ilk 10 ağırlıklı ME)
+    chart = BarChart()
+    chart.type = "bar"
+    chart.title = f"İlk {n} Fon — Ağırlıklı Mevduat Eşleniği"
+    chart.legend = None
+    chart.height = 8.5
+    chart.width = 18
+    data = Reference(ws, min_col=4, min_row=hr, max_row=hr + n)
+    cats = Reference(ws, min_col=2, min_row=hr + 1, max_row=hr + n)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(cats)
+    chart.y_axis.numFmt = "0%"
+    chart.y_axis.majorGridlines = None
+    ws.add_chart(chart, "F3")
+
+    for col, w in {"A": 22, "B": 8, "C": 42, "D": 12}.items():
+        ws.column_dimensions[col].width = w
+    ws.sheet_view.topLeftCell = "A1"
 
 
 # ---------------------------------------------------------------------------

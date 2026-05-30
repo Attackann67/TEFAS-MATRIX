@@ -19,6 +19,7 @@ import sys
 
 from . import config
 from .compute import build_matrix
+from .dashboard import write_html_dashboard
 from .sources import filter_ppf, from_live, from_workbook
 from .workbook import write_workbook
 
@@ -31,6 +32,9 @@ def main(argv=None):
     g.add_argument("--live", action="store_true", help="TEFAS'tan canlı fiyat çek")
     p.add_argument("--asof", help="Canlı çekim için T günü (YYYY-MM-DD)")
     p.add_argument("--out", required=True, help="Çıktı .xlsx yolu")
+    p.add_argument("--dashboard", nargs="?", const="__auto__",
+                   help="İnteraktif HTML dashboard da üret. Yol verilmezse "
+                        "--out ile aynı isimde .html yazılır.")
     p.add_argument("--w1", type=float, default=config.WEIGHTS["1G"])
     p.add_argument("--w7", type=float, default=config.WEIGHTS["7G"])
     p.add_argument("--w15", type=float, default=config.WEIGHTS["15G"])
@@ -62,6 +66,14 @@ def main(argv=None):
     asof = args.asof or _dt.date.today().isoformat()
     write_workbook(df, args.out, weights=weights, asof=asof)
     print(f"✓ {len(df)} fon yazıldı -> {args.out}")
+
+    if args.dashboard is not None:
+        html_path = args.dashboard
+        if html_path == "__auto__":
+            html_path = (args.out[:-5] if args.out.lower().endswith(".xlsx")
+                         else args.out) + ".html"
+        write_html_dashboard(df, html_path, weights=weights, asof=asof)
+        print(f"✓ HTML dashboard -> {html_path}")
     print("İlk 5:")
     for _, r in df.head(5).iterrows():
         print(f"  {int(r['Sıra'])}. {r['Fon Kodu']:<4} "
