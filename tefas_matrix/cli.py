@@ -35,6 +35,9 @@ def main(argv=None):
     p.add_argument("--dashboard", nargs="?", const="__auto__",
                    help="İnteraktif HTML dashboard da üret. Yol verilmezse "
                         "--out ile aynı isimde .html yazılır.")
+    p.add_argument("--serve", nargs="?", const=8000, type=int, metavar="PORT",
+                   help="Dashboard'u yerelde (localhost) servis et ve tarayıcıda "
+                        "aç. Varsayılan port 8000. --dashboard verilmese de çalışır.")
     p.add_argument("--w1", type=float, default=config.WEIGHTS["1G"])
     p.add_argument("--w7", type=float, default=config.WEIGHTS["7G"])
     p.add_argument("--w15", type=float, default=config.WEIGHTS["15G"])
@@ -67,17 +70,22 @@ def main(argv=None):
     write_workbook(df, args.out, weights=weights, asof=asof)
     print(f"✓ {len(df)} fon yazıldı -> {args.out}")
 
-    if args.dashboard is not None:
-        html_path = args.dashboard
-        if html_path == "__auto__":
-            html_path = (args.out[:-5] if args.out.lower().endswith(".xlsx")
-                         else args.out) + ".html"
+    # --serve, --dashboard verilmese de HTML'e ihtiyaç duyar.
+    html_path = None
+    if args.dashboard is not None or args.serve is not None:
+        html_path = args.dashboard if args.dashboard not in (None, "__auto__") else \
+            (args.out[:-5] if args.out.lower().endswith(".xlsx") else args.out) + ".html"
         write_html_dashboard(df, html_path, weights=weights, asof=asof)
         print(f"✓ HTML dashboard -> {html_path}")
+
     print("İlk 5:")
     for _, r in df.head(5).iterrows():
         print(f"  {int(r['Sıra'])}. {r['Fon Kodu']:<4} "
               f"AĞ.ORT={r['AĞIRLIKLI ORT']:.4%}  {r['Fon Adı'][:45]}")
+
+    if args.serve is not None:
+        from .serve import serve_dashboard
+        serve_dashboard(html_path, port=args.serve)
     return 0
 
 

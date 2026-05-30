@@ -69,6 +69,19 @@ python -m tefas_matrix --source in.xlsx --out out.xlsx --dashboard
 # -> out.html  (yol da verilebilir: --dashboard panel.html)
 ```
 
+### Yerel dashboard (localhost'ta aç)
+
+Dosyayı çift tıklamak yerine `--serve` ile dashboard'u yerel bir sunucuda
+açabilirsin; tarayıcı otomatik açılır (yalnızca `127.0.0.1`, dışarı kapalı,
+ek bağımlılık yok). `--dashboard` vermesen de çalışır:
+
+```bash
+python -m tefas_matrix --source in.xlsx --out out.xlsx --serve
+# ▶ Dashboard yerelde yayında: http://127.0.0.1:8000/out.html  (Ctrl+C ile durur)
+
+python -m tefas_matrix --live --asof 2026-05-29 --out out/Matrix.xlsx --serve 8080
+```
+
 ## Çıktı
 
 **Sheet 1 — Dashboard:** Özet panel — KPI kartları (fon sayısı, ortalama/medyan

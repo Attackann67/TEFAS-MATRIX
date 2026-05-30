@@ -93,6 +93,33 @@ def test_write_html_dashboard(tmp_path):
     assert "Fon Sayısı" in doc
 
 
+def test_serve_dashboard_localhost(tmp_path):
+    import threading
+    import urllib.request
+
+    from tefas_matrix import write_html_dashboard
+    from tefas_matrix.serve import serve_dashboard
+
+    df = build_matrix(_records())
+    html = tmp_path / "dash.html"
+    write_html_dashboard(df, str(html), asof="2026-01-01")
+
+    t = threading.Thread(target=serve_dashboard,
+                         args=(str(html), 8791, False), daemon=True)
+    t.start()
+    # sunucunun ayağa kalkmasını bekle
+    body = None
+    for _ in range(50):
+        try:
+            r = urllib.request.urlopen("http://127.0.0.1:8791/dash.html", timeout=2)
+            body = r.read().decode("utf-8")
+            break
+        except Exception:
+            import time
+            time.sleep(0.1)
+    assert body is not None and "Mevduat Eşleniği Dashboard" in body
+
+
 @pytest.mark.skipif(
     not (os.path.exists(os.path.join(FIX, "source.xlsx"))
          and os.path.exists(os.path.join(FIX, "reference.xlsx"))),
