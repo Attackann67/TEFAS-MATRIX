@@ -211,13 +211,20 @@ def _compute_me_from_prices(info: Dict[_dt.date, pd.DataFrame]):
 def filter_ppf(records: Dict[str, FundRecord],
                name_filter: str = config.NAME_FILTER,
                min_size: Optional[float] = config.MIN_FUND_SIZE) -> Dict[str, FundRecord]:
-    """Para piyasası fonu adı + minimum büyüklük filtresini uygular."""
+    """Para piyasası fonu adı + minimum büyüklük filtresini uygular.
+
+    config.TRACK referans fonları büyüklük filtresinden muaftır (2 mr altında
+    olsalar da listede kalırlar). Ad filtresi, evren zaten ad|tür ile süzüldüğü
+    için TRACK fonlarına uygulanmaz.
+    """
     nf = name_filter.upper()
     out = {}
     for code, rec in records.items():
-        if nf and nf not in rec.name.upper():
+        is_track = code in config.TRACK
+        if nf and nf not in rec.name.upper() and not is_track:
             continue
-        if min_size is not None and rec.fund_size is not None and rec.fund_size < min_size:
+        if (min_size is not None and rec.fund_size is not None
+                and rec.fund_size < min_size and not is_track):
             continue
         out[code] = rec
     return out
@@ -233,31 +240,125 @@ def filter_ppf(records: Dict[str, FundRecord],
 # isimsiz `fetch` ~400 fon × her tarih için bir HTTP isteğine açılıp
 # hız sınırına (503 -> 403) takılıyor. Bu yüzden önce evreni daraltıp
 # fon başına zaman serisini throttle'lı çekiyoruz.
-_LIST_PAYLOAD = {
-    "dil": "TR", "fonTipi": "YAT", "kurucuKodu": None, "sfonTurKod": None,
-    "fonTurAciklama": None, "islem": 1, "fonTurKod": None, "fonGrubu": None,
-    "donemGetiri1a": "1", "donemGetiri3a": "1", "donemGetiri6a": "1",
-    "donemGetiri1y": "1", "donemGetiriyb": "1", "donemGetiri3y": "1",
-    "donemGetiri5y": "1", "basTarih": None, "bitTarih": None,
-    "calismaTipi": 2, "getiriOrani": "1",
+def _list_payload(islem):
+    return {
+        "dil": "TR", "fonTipi": "YAT", "kurucuKodu": None, "sfonTurKod": None,
+        "fonTurAciklama": None, "islem": islem, "fonTurKod": None, "fonGrubu": None,
+        "donemGetiri1a": "1", "donemGetiri3a": "1", "donemGetiri6a": "1",
+        "donemGetiri1y": "1", "donemGetiriyb": "1", "donemGetiri3y": "1",
+        "donemGetiri5y": "1", "basTarih": None, "bitTarih": None,
+        "calismaTipi": 2, "getiriOrani": "1",
+    }
+
+# Geriye dönük uyum: tekil çağrılar için islem=1 yükü.
+_LIST_PAYLOAD = _list_payload(1)
+
+_TUR_KISA = {
+    "Para Piyasası Şemsiye Fonu": "Para Piyasası",
+    "Serbest Şemsiye Fonu": "Serbest",
+    "Katılım Şemsiye Fonu": "Katılım",
 }
 
 
 def _list_ppf_funds(crawler, name_filter: str = config.NAME_FILTER):
-    """Liste endpoint'inden para piyasası fonlarını (kod, ad) döndürür.
+    """Liste endpoint'inden para piyasası fon evrenini (meta ile) döndürür.
 
-    Tek HTTP isteği; adında `name_filter` (varsayılan 'PARA PİYASASI')
-    geçen YAT fonlarını süzer.
+    `islem=1` (borsada işlem gören) ve `islem=0` (nitelikli/serbest) listelerinin
+    **birleşimini** alır; böylece KHP/ZA2/ILH/UCP gibi nitelikli fonlar da gelir.
+    Adı **veya** fon türü (fonTurAciklama) 'PARA PİYASASI' içeren fonları süzer;
+    config.TRACK referans fonları her hâlükârda dahil edilir.
+
+    Dönüş: {kod: {name, tur, tefas, getiri1a}} sözlüğü.
     """
-    rows = crawler._do_post(crawler.list_endpoint, _LIST_PAYLOAD)
+    merged: Dict[str, dict] = {}
+    for islem in (1, 0):
+        try:
+            rows = crawler._do_post(crawler.list_endpoint, _list_payload(islem))
+        except Exception:
+            rows = []
+        for r in rows:
+            code = r.get("fonKodu")
+            if code:
+                merged.setdefault(str(code).strip(), r)
+
     nf = name_filter.upper()
-    out = []
-    for r in rows:
-        name = str(r.get("fonUnvan", "")).strip()
-        code = r.get("fonKodu")
-        if code and nf in name.upper():
-            out.append((str(code).strip(), name))
+
+    def is_pp(r):
+        u = str(r.get("fonUnvan", "")).upper()
+        t = str(r.get("fonTurAciklama", "")).upper()
+        return nf in u or nf in t
+
+    out: Dict[str, dict] = {}
+    for code, r in merged.items():
+        if is_pp(r) or code in config.TRACK:
+            out[code] = {
+                "name": str(r.get("fonUnvan", code)).strip(),
+                "tur": _TUR_KISA.get(r.get("fonTurAciklama"), r.get("fonTurAciklama") or ""),
+                "tefas": bool(r.get("tefasDurum")),
+                "getiri1a": r.get("getiri1a"),
+            }
     return out
+
+
+def _fetch_sizes(crawler, date_str: str) -> Dict[str, float]:
+    """fonBuyuklukBazliBilgiGetir ile fon büyüklüğünü (sonPortfoyDegeri) çeker.
+
+    date_str: 'yyyyMMdd' (TEFAS bu endpoint'te '-'/'.' kabul etmez).
+    """
+    body = {
+        "dil": "TR", "fonTipi": "YAT", "kurucuKodu": None, "fonTurKod": None,
+        "fonGrubu": None, "fonTurAciklama": None, "islem": None,
+        "basTarih": date_str, "bitTarih": date_str, "calismaTipi": 2,
+        "sfonTurKod": None,
+    }
+    try:
+        rows = crawler._do_post("/api/funds/fonBuyuklukBazliBilgiGetir", body)
+    except Exception:
+        return {}
+    return {str(x.get("fonKodu")).strip(): (x.get("sonPortfoyDegeri") or 0.0)
+            for x in rows if x.get("fonKodu")}
+
+
+def _fetch_distribution(crawler, date_str: str) -> Dict[str, dict]:
+    """dagilimSiraliGetirT ile portföy dağılımını (kısa kod -> %) çeker.
+
+    basSira/bitSira zorunludur (sayfalama); date_str 'yyyyMMdd'.
+    """
+    body = {
+        "fonTipi": "YAT", "fonKodu": None, "aramaMetni": None, "fonTurKod": None,
+        "fonGrubu": None, "sfonTurKod": None, "basTarih": date_str,
+        "bitTarih": date_str, "basSira": 1, "bitSira": 2300,
+        "fonTurAciklama": None, "dil": "TR", "kurucuKod": None,
+    }
+    try:
+        rows = crawler._do_post("/api/funds/dagilimSiraliGetirT", body)
+    except Exception:
+        return {}
+    skip = {"fonKodu", "fonUnvan", "tarih", "bilFiyat"}
+    out = {}
+    for x in rows:
+        code = x.get("fonKodu")
+        if not code:
+            continue
+        out[str(code).strip()] = {k: v for k, v in x.items()
+                                  if k not in skip and isinstance(v, (int, float))}
+    return out
+
+
+def _dist_to_allocation(short_dist: dict) -> dict:
+    """Canlı kısa-kod dağılımını portfolio_breakdown'ın beklediği biçime çevirir.
+
+    Her çıktı etiketinin ilk kaynak adına ('taşıyıcı') eşlenmiş değer yazılır;
+    eşlenmeyen kodlar kendi adlarıyla kalır -> portfolio_breakdown bunları
+    'Diğer'e toplar. Böylece TOPLAM ~%100'e tamamlanır.
+    """
+    carrier = {label: sources[0] for label, sources in config.PD_OUTPUT_COLUMNS}
+    alloc: Dict[str, float] = {}
+    for short, val in short_dist.items():
+        label = config.LIVE_DIST_CODE_MAP.get(short)
+        key = carrier[label] if label in carrier else f"_raw_{short}"
+        alloc[key] = alloc.get(key, 0.0) + float(val)
+    return alloc
 
 
 def _fetch_series_throttled(crawler, code, start, end,
@@ -286,19 +387,18 @@ def _fetch_series_throttled(crawler, code, start, end,
 
 def from_live(asof: Optional[str] = None,
               delay: float = 0.25) -> Dict[str, FundRecord]:
-    """tefas-crawler ile canlı fiyat çekip ME hesaplar (throttle'lı).
+    """Canlı TEFAS API'sinden fiyat + büyüklük + portföy dağılımı çekip ME üretir.
 
-    Önce liste endpoint'inden para piyasası fonu evrenini (tek istek) alır,
-    sonra yalnızca bu fonlar için fiyat zaman serisini fon başına bir istekle,
-    hız sınırına dayanıklı (gecikme + backoff) çeker. Eski toplu fan-out
-    (~400 fon × her tarih) TEFAS tarafından 503/403 ile sınırlandığından
-    kullanılmaz.
+    Akış (claude.ai referans pipeline'ı ile hizalı):
+      1) Evren: fonGetiriBazliBilgiGetir islem=1 ∪ islem=0; ad|tür 'PARA PİYASASI'
+         + config.TRACK. (Katılım/nitelikli fonlar dahil.)
+      2) Fiyat: fon başına zaman serisi (throttle + backoff) -> 1G/7G/15G ME
+         gerçek gün sayısıyla yıllıklandırılır.
+      3) Büyüklük: fonBuyuklukBazliBilgiGetir (sonPortfoyDegeri) -> ≥2 mr filtresi.
+      4) Dağılım: dagilimSiraliGetirT -> Sheet 2 (kısa kodlar sınıflara eşlenir).
 
-    asof: 'YYYY-MM-DD' (T günü). None ise bugün denenir.
-    NOT: Yeni TEFAS API'si yalnızca fiyat döndürür; fon büyüklüğü, kişi
-    sayısı ve portföy dağılımı public olarak gelmez -> bu alanlar None
-    kalır ve Sheet 2 'PD YOK' olarak işaretlenir. Bu veriler için TEFAS
-    web export'unu kullanın (from_workbook).
+    asof: 'YYYY-MM-DD' (T günü). None ise bugün denenir. Büyüklük/dağılım
+    fiyattan ~1 gün geç yayımlanabilir; fiyatın en güncel ortak günü T alınır.
     """
     try:
         from tefas import Crawler
@@ -306,27 +406,24 @@ def from_live(asof: Optional[str] = None,
         raise RuntimeError("tefas-crawler kurulu değil: pip install tefas-crawler") from e
 
     T = _dt.date.fromisoformat(asof) if asof else _dt.date.today()
-    # Hafta sonu ise en son cuma'ya çek
-    while T.weekday() >= 5:
+    while T.weekday() >= 5:        # hafta sonu -> son cuma
         T -= _dt.timedelta(days=1)
 
-    # En uzun dönem (15G) + tatil/hafta sonu payı kadar geriye git.
     max_gap = max(config.PERIOD_DAYS.values())
     window_start = T - _dt.timedelta(days=max_gap + 12)
 
     crawler = Crawler()
-    ppf = _list_ppf_funds(crawler)
-    if not ppf:
+    meta = _list_ppf_funds(crawler)
+    if not meta:
         raise RuntimeError("Liste endpoint'inden hiç para piyasası fonu gelmedi.")
 
-    # (code, date, price, title) uzun tablosu -> tarih bazlı panel
+    # Fiyat serileri -> tarih panel'i
     rows: List[dict] = []
-    for code, _name in ppf:
+    for code in meta:
         df = _fetch_series_throttled(crawler, code, window_start, T, delay=delay)
         if df is None or df.empty:
             continue
-        for rec in df.to_dict("records"):
-            rows.append(rec)
+        rows.extend(df.to_dict("records"))
 
     if not rows:
         raise RuntimeError(f"{T} civarı için hiç PPF fiyatı alınamadı.")
@@ -340,5 +437,22 @@ def from_live(asof: Optional[str] = None,
         info_like[d] = df_d[["Fiyat", "Fon Adı"]]
 
     me_by_code, name_by_code, _ = _compute_me_from_prices(info_like)
-    return {c: FundRecord(code=c, name=name_by_code.get(c, c), me=me)
-            for c, me in me_by_code.items()}
+
+    # Büyüklük + dağılım (fiyatın efektif T'si ile aynı gün)
+    eff_T = max(info_like)
+    date_str = eff_T.strftime("%Y%m%d")
+    sizes = _fetch_sizes(crawler, date_str)
+    dist = _fetch_distribution(crawler, date_str)
+
+    records: Dict[str, FundRecord] = {}
+    for code, me in me_by_code.items():
+        m = meta.get(code, {})
+        rec = FundRecord(code=code, name=m.get("name") or name_by_code.get(code, code), me=me)
+        rec.fund_size = sizes.get(code)
+        rec.tur = m.get("tur", "")
+        rec.tefas = m.get("tefas")
+        rec.getiri1a = m.get("getiri1a")
+        if code in dist:
+            rec.allocation = _dist_to_allocation(dist[code])
+        records[code] = rec
+    return records
