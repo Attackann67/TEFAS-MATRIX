@@ -68,12 +68,62 @@ def test_write_workbook_formulas(tmp_path):
     out = tmp_path / "m.xlsx"
     write_workbook(df, str(out), asof="2026-01-01")
     wb = load_workbook(out)
-    assert wb.sheetnames == ["PPF Mevduat Eşleniği", "Portföy Dağılım"]
+    assert wb.sheetnames == ["Dashboard", "PPF Mevduat Eşleniği", "Portföy Dağılım"]
+    assert wb.active.title == "Dashboard"
     ws = wb["PPF Mevduat Eşleniği"]
     # AĞIRLIKLI ORT formül olmalı, hardcoded değil
     assert str(ws["J6"].value).startswith("=D6*$E$3")
     # ağırlık input hücreleri
     assert ws["E3"].value == 0.5
+
+
+def test_write_html_dashboard(tmp_path):
+    from tefas_matrix import write_html_dashboard
+
+    df = build_matrix(_records())
+    out = tmp_path / "dash.html"
+    write_html_dashboard(df, str(out), asof="2026-01-01")
+    doc = out.read_text(encoding="utf-8")
+    assert "<!DOCTYPE html>" in doc
+    assert "Mevduat Eşleniği Dashboard" in doc
+    # tablo verisi gömülü ve fon kodları geçiyor
+    for code in df["Fon Kodu"]:
+        assert code in doc
+    # KPI: fon sayısı
+    assert "Fon Sayısı" in doc
+    # detaylı dashboard: iki sekme + portföy dağılımı ısı haritası
+    assert 'data-tab="rank"' in doc and 'data-tab="dist"' in doc
+    assert "Portföy Dağılımı" in doc
+    assert "buildHeatmap" in doc
+    # _records() AAA/BBB dağılımı var -> ısı haritası dolu (HAS_DIST true)
+    assert "const HAS_DIST = true" in doc
+
+
+def test_serve_dashboard_localhost(tmp_path):
+    import threading
+    import urllib.request
+
+    from tefas_matrix import write_html_dashboard
+    from tefas_matrix.serve import serve_dashboard
+
+    df = build_matrix(_records())
+    html = tmp_path / "dash.html"
+    write_html_dashboard(df, str(html), asof="2026-01-01")
+
+    t = threading.Thread(target=serve_dashboard,
+                         args=(str(html), 8791, False), daemon=True)
+    t.start()
+    # sunucunun ayağa kalkmasını bekle
+    body = None
+    for _ in range(50):
+        try:
+            r = urllib.request.urlopen("http://127.0.0.1:8791/dash.html", timeout=2)
+            body = r.read().decode("utf-8")
+            break
+        except Exception:
+            import time
+            time.sleep(0.1)
+    assert body is not None and "Mevduat Eşleniği Dashboard" in body
 
 
 @pytest.mark.skipif(

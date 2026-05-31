@@ -36,6 +36,9 @@ class FundRecord:
     fund_size: Optional[float] = None     # Fon Toplam Değer (TL)
     investors: Optional[int] = None       # Kişi Sayısı
     allocation: Dict[str, float] = field(default_factory=dict)  # ham PD sütunları
+    tur: str = ""                          # fon türü (Para Piyasası/Serbest/Katılım)
+    tefas: Optional[bool] = None           # TEFAS'ta işlem görüyor mu
+    getiri1a: Optional[float] = None       # TEFAS yayımlı 1 aylık getiri (cross-check)
 
 
 def build_matrix(records: Dict[str, FundRecord],
@@ -64,6 +67,7 @@ def build_matrix(records: Dict[str, FundRecord],
     df = pd.DataFrame([{
         "Fon Kodu": r.code,
         "Fon Adı": r.name,
+        "Tür": r.tur,
         "1G ME": r.me["1G"],
         "7G ME": r.me["7G"],
         "15G ME": r.me["15G"],

@@ -6,6 +6,7 @@ sıralamasını oluşturur ve formüllü, cross-check'li iki sheet'li Excel
 """
 
 from .compute import FundRecord, build_matrix, mevduat_esligi  # noqa: F401
+from .dashboard import write_html_dashboard  # noqa: F401
 from .sources import from_live, from_workbook, filter_ppf  # noqa: F401
 from .workbook import write_workbook  # noqa: F401
 

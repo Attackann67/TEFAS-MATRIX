@@ -59,14 +59,45 @@ Sheet 2 "PD YOK" olarak işaretlenir. Tam çıktı için (1) numaralı yolu kull
 python -m tefas_matrix --source in.xlsx --out out.xlsx --w1 0.5 --w7 0.35 --w15 0.15
 ```
 
+### İnteraktif HTML dashboard
+
+`--dashboard` ile Excel'in yanında tek dosyalık, tarayıcıda açılan interaktif
+bir dashboard da üretilir (harici bağımlılık/CDN yok):
+
+```bash
+python -m tefas_matrix --source in.xlsx --out out.xlsx --dashboard
+# -> out.html  (yol da verilebilir: --dashboard panel.html)
+```
+
+### Yerel dashboard (localhost'ta aç)
+
+Dosyayı çift tıklamak yerine `--serve` ile dashboard'u yerel bir sunucuda
+açabilirsin; tarayıcı otomatik açılır (yalnızca `127.0.0.1`, dışarı kapalı,
+ek bağımlılık yok). `--dashboard` vermesen de çalışır:
+
+```bash
+python -m tefas_matrix --source in.xlsx --out out.xlsx --serve
+# ▶ Dashboard yerelde yayında: http://127.0.0.1:8000/out.html  (Ctrl+C ile durur)
+
+python -m tefas_matrix --live --asof 2026-05-29 --out out/Matrix.xlsx --serve 8080
+```
+
 ## Çıktı
 
-**Sheet 1 — PPF Mevduat Eşleniği:** Sıra, Fon Kodu/Adı, 1G/7G/15G ME ve dönem
+**Sheet 1 — Dashboard:** Özet panel — KPI kartları (fon sayısı, ortalama/medyan
+ME, en yüksek/en düşük, aralık, ağırlıklar), ilk 10 fon mini-tablosu ve gömülü
+bar grafik. Dosya açıldığında ilk gelen sheet budur.
+
+**Sheet 2 — PPF Mevduat Eşleniği:** Sıra, Fon Kodu/Adı, 1G/7G/15G ME ve dönem
 sıraları, formüllü `AĞIRLIKLI ORT.` (sarı ağırlık input hücrelerine bağlı),
 `Fark (2.ye)`, Fon Tutar, Kişi Sayısı + alt cross-check bloğu.
 
-**Sheet 2 — Portföy Dağılım:** Aynı sırada varlık sınıfı yüzdeleri, otomatik
+**Sheet 3 — Portföy Dağılım:** Aynı sırada varlık sınıfı yüzdeleri, otomatik
 `Diğer` ile %100'e tamamlanan `TOPLAM` ve `Kontrol` sütunu.
+
+**HTML dashboard (`--dashboard`):** KPI kartları, ilk 15 fonun inline-SVG bar
+grafiği ve sütundan sıralanabilir, renk kodlu tam tablo. Excel ile aynı renk
+şeması.
 
 Renk kodu: 1-5 koyu yeşil · 6-10 açık yeşil · 11-15 gri · 16-20 açık gri ·
 21+ beyaz · veri eksik kırmızı. 5/10/15/20. sıralarda ayraç çizgisi.

@@ -31,6 +31,30 @@ NAME_FILTER = "PARA PİYASASI"
 # Fon Toplam Değer alt sınırı (TL). None ise filtre uygulanmaz.
 MIN_FUND_SIZE = 2_000_000_000
 
+# Referans/izlenen fonlar — büyüklük filtresinden muaf tutulur (canlı çekimde
+# 2 mr altında olsalar da listede kalırlar). Kaynak: claude.ai referans akışı.
+TRACK = {"ILH", "YIK", "UCP", "GUC", "ZPR", "UP2", "PPJ", "UNT"}
+
+# Canlı dağılım (dagilimSiraliGetirT) kısa varlık kodları -> çıktı sınıfı.
+# Yeni TEFAS API'si portföy dağılımını kısa kodlarla döndürür; bunları
+# Sheet 2 çıktı sütunlarına (PD_OUTPUT_COLUMNS etiketleri) eşler.
+LIVE_DIST_CODE_MAP = {
+    "vmtl": "Mevduat (TL) (%)", "vm": "Mevduat (TL) (%)", "vmd": "Mevduat (TL) (%)",
+    "vmau": "Mevduat (TL) (%)", "vdm": "Mevduat (TL) (%)",
+    "kh": "Katılma Hesabı (%)", "khtl": "Katılma Hesabı (%)",
+    "khd": "Katılma Hesabı (%)", "khau": "Katılma Hesabı (%)",
+    "tr": "Ters-Repo (%)", "tpp": "Takasbank Para P. (%)",
+    "bpp": "Borsa İstanbul Para P. (%)", "hb": "Hazine Bonosu (%)",
+    "dt": "Devlet Tahvili (%)", "eut": "Devlet Tahvili (%)",
+    "fb": "Finansman Bonosu (%)", "bb": "Finansman Bonosu (%)",
+    "ost": "Özel Sektör Tahvili (%)", "osdb": "Özel Sektör Tahvili (%)",
+    "kks": "Kamu Kira Sert. (%)", "kkstl": "Kamu Kira Sert. (%)",
+    "kksd": "Kamu Kira Sert. (%)", "kksyd": "Kamu Kira Sert. (%)",
+    "kibd": "Kamu Kira Sert. (%)",
+    "osks": "Özel Sektör Kira Sert. (%)", "oksyd": "Özel Sektör Kira Sert. (%)",
+    "btas": "BİST Taahhütlü İşlem (%)", "btaa": "BİST Taahhütlü İşlem (%)",
+}
+
 # --- Sheet 2: Portföy Dağılım çıktı sütunları -------------------------------
 # (Çıktı başlığı) -> ham TEFAS Portföy Dağılım sütun adları toplamı.
 # Ham sheet'te alt kırılımlar (TL/Döviz/Altın, Alım/Satım) ayrı gelir;
