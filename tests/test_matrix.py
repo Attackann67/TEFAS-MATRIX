@@ -91,6 +91,12 @@ def test_write_html_dashboard(tmp_path):
         assert code in doc
     # KPI: fon sayısı
     assert "Fon Sayısı" in doc
+    # detaylı dashboard: iki sekme + portföy dağılımı ısı haritası
+    assert 'data-tab="rank"' in doc and 'data-tab="dist"' in doc
+    assert "Portföy Dağılımı" in doc
+    assert "buildHeatmap" in doc
+    # _records() AAA/BBB dağılımı var -> ısı haritası dolu (HAS_DIST true)
+    assert "const HAS_DIST = true" in doc
 
 
 def test_serve_dashboard_localhost(tmp_path):

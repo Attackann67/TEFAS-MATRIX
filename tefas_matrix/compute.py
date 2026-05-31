@@ -67,6 +67,7 @@ def build_matrix(records: Dict[str, FundRecord],
     df = pd.DataFrame([{
         "Fon Kodu": r.code,
         "Fon Adı": r.name,
+        "Tür": r.tur,
         "1G ME": r.me["1G"],
         "7G ME": r.me["7G"],
         "15G ME": r.me["15G"],
