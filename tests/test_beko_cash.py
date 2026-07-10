@@ -71,6 +71,24 @@ def test_summary_sorgula_flag():
     assert "Beko Gulf" in out  # vadesiz 350/400 = %87 >= esik
 
 
+def test_pool_participant_mapping():
+    # grup tarafi dogrudan
+    assert schema.pool_participant_entity("ARCELIK ANONIM SIRKETI") == ("E046", None)
+    assert schema.pool_participant_entity("BEKO US INC") == ("E586", None)
+    assert schema.pool_participant_entity("Beko B.V.") == ("E236", None)
+    # C746 LE'leri (LE notu ile)
+    assert schema.pool_participant_entity("BEKO PLC") == ("C746", "C500")
+    assert schema.pool_participant_entity("GRUNDIG NORDIC NO AS") == ("C746", "E426")
+    assert schema.pool_participant_entity("GRUNDIG NORDIC AB") == ("C746", "E429")
+    assert schema.pool_participant_entity("BEKO-HOME APPLIANCES PORTUGAL UNIPE") == ("C746", "E675")
+    # cash dosyasi disi -> HARIC (C746'ya katilmaz)
+    assert schema.pool_participant_entity("BEKO EUROPE BV")[0] == "HARIC"
+    assert schema.pool_participant_entity("BEKO INTERNATIONAL SA (eski Indesit)")[0] == "HARIC"
+    assert schema.pool_participant_entity("RETAIL HOLDINGS BHOLD BV")[0] == "HARIC"
+    # bilinmeyen isim -> None (kullaniciya sor)
+    assert schema.pool_participant_entity("YENI FIRMA GMBH") == (None, None)
+
+
 def test_dashboard_build(tmp_path):
     out = dashboard.build([_snap("2026-04", None), _snap("2026-05")], tmp_path / "d.xlsx")
     wb = openpyxl.load_workbook(out)

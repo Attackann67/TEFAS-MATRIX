@@ -382,8 +382,9 @@ def _build_nakit(ws: Worksheet, snaps, det, ent, girdi):
 def _build_pool(ws: Worksheet, snaps):
     last = snaps[-1]
     pool = last.get("pool", {}) or {}
-    _title(ws, f"Citi Pool ({last['month']}) - katilimci bakiyeleri (EUR)", 4)
-    heads = ["Katilimci", "SUM EURO BALANCE"]
+    _title(ws, f"Citi Pool ({last['month']}) - katilimci bakiyeleri (EUR); "
+               f"HARIC = cash dosyasi disi, C746'ya katilmaz", 4)
+    heads = ["Katilimci", "SUM EURO BALANCE", "Eslesen Kod", "LE Notu"]
     r = 3
     for j, h in enumerate(heads, start=1):
         _hdr(ws.cell(row=r, column=j, value=h))
@@ -391,10 +392,17 @@ def _build_pool(ws: Worksheet, snaps):
     parts = pool.get("participants", {}) or {}
     first_p = r
     for name, bal in parts.items():
+        code, le = schema.pool_participant_entity(name)
         ws.cell(row=r, column=1, value=name); _color(ws.cell(row=r, column=1))
         ws.cell(row=r, column=2, value=bal); _color(ws.cell(row=r, column=2), schema.C_INPUT, schema.FMT_TL)
+        ws.cell(row=r, column=3, value=code or "Eslesmedi"); _color(ws.cell(row=r, column=3))
+        ws.cell(row=r, column=4, value=le); _color(ws.cell(row=r, column=4))
+        if code is None:
+            ws.cell(row=r, column=3).fill = PatternFill("solid", fgColor=schema.C_WARN)
         r += 1
     last_p = r - 1
+    kod_rng = f"$C${first_p}:$C${last_p}"
+    bal_rng = f"$B${first_p}:$B${last_p}"
     # Grand Total (girdi), Arcelik (girdi), Istiraklerin Pool = GT - Arcelik (formul)
     ws.cell(row=r, column=1, value="Grand Total (girdi)"); _color(ws.cell(row=r, column=1), bold=True, fill=schema.C_GROUP)
     ws.cell(row=r, column=2, value=pool.get("grand_total_eur")); _color(ws.cell(row=r, column=2), schema.C_INPUT, schema.FMT_TL, bold=True)
@@ -409,9 +417,29 @@ def _build_pool(ws: Worksheet, snaps):
     r += 1
     if first_p <= last_p:
         ws.cell(row=r, column=1, value="Katilimci toplami (kontrol)"); _color(ws.cell(row=r, column=1))
-        ws.cell(row=r, column=2, value=f"=SUM(B{first_p}:B{last_p})")
+        ws.cell(row=r, column=2, value=f"=SUM({bal_rng})")
         _color(ws.cell(row=r, column=2), schema.C_SAME, schema.FMT_TL)
-    _widths(ws, {"A": 42, "B": 22})
+        r += 2
+        # Kod bazli ara toplamlar (canli SUMIF)
+        ws.cell(row=r, column=1, value="Kod bazli ara toplam"); _color(ws.cell(row=r, column=1), bold=True, fill=schema.C_GROUP)
+        r += 1
+        seen_codes = []
+        for name in parts:
+            code, _ = schema.pool_participant_entity(name)
+            code = code or "Eslesmedi"
+            if code not in seen_codes:
+                seen_codes.append(code)
+        for code in seen_codes:
+            label = {"C746": "C746 Beko Europe (eslesen LE'ler)",
+                     "HARIC": "HARIC (cash dosyasi disi - C746'ya katilmaz)",
+                     "Eslesmedi": "Eslesmedi (kullaniciya sor)"}.get(code, code)
+            ws.cell(row=r, column=1, value=label); _color(ws.cell(row=r, column=1))
+            ws.cell(row=r, column=2, value=f'=SUMIF({kod_rng},"{code}",{bal_rng})')
+            _color(ws.cell(row=r, column=2), schema.C_SAME, schema.FMT_TL)
+            if code in ("HARIC", "Eslesmedi"):
+                ws.cell(row=r, column=1).fill = PatternFill("solid", fgColor=schema.C_WARN)
+            r += 1
+    _widths(ws, {"A": 46, "B": 22, "C": 12, "D": 10})
 
 
 # --- Acik Sorgular -----------------------------------------------------------

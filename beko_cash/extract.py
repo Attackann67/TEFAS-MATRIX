@@ -20,12 +20,7 @@ from typing import Dict, List, Optional
 from . import schema, snapshot
 
 
-_TR_FOLD = str.maketrans({"ş": "s", "Ş": "s", "ı": "i", "İ": "i", "ğ": "g", "Ğ": "g",
-                          "ü": "u", "Ü": "u", "ö": "o", "Ö": "o", "ç": "c", "Ç": "c"})
-
-
-def _norm(s) -> str:
-    return str(s or "").strip().replace("i̇", "i").translate(_TR_FOLD).lower()
+_norm = schema.norm_name
 
 
 def _find_header(ws, needles: List[str], max_scan: int = 10):
@@ -177,9 +172,30 @@ def enrich_pool(snap: dict, path: str | Path, sheet: Optional[str] = None) -> di
         parts[firm] = bal
         if _norm(firm).startswith("arcelik anonim"):
             arcelik = bal
+
+    # Katilimci -> istirak eslesmesi (eslesme-tablosu): kod bazinda topla.
+    # HARIC olanlar C746'ya KATILMAZ; eslesmeyen isim kullaniciya sorulmak
+    # uzere 'unmatched' listesine yazilir (SORMADAN eslestirme yok).
+    by_code: Dict[str, float] = defaultdict(float)
+    unmatched: List[str] = []
+    for firm, bal in parts.items():
+        code, _le = schema.pool_participant_entity(firm)
+        if code is None:
+            unmatched.append(firm)
+        else:
+            by_code[code] += bal
+    for code, total in by_code.items():
+        if code == "HARIC":
+            continue
+        ent = snap["entities"].get(code)
+        if ent is not None:
+            ent["citi_pool_eur"] = round(total, 2)
+
     snap["pool"] = {
         "grand_total_eur": round(sum(parts.values()), 2),
         "arcelik_eur": arcelik,
         "participants": parts,
+        "by_entity_eur": {k: round(v, 2) for k, v in sorted(by_code.items())},
+        "unmatched": unmatched,
     }
     return snap["pool"]

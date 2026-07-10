@@ -142,12 +142,16 @@ bayragi) · Nakit vs Overdue (kesit farki etikette) · Citi Pool · Acik Sorgula
 Renk kurali: baslik #002060 · **mavi** dis kaynak girdi · siyah ayni sayfa
 formul · **yesil** capraz sayfa · **sari** dikkat. Kaynaksiz rakam yazilmaz.
 
-## Gizlilik
+## Veri notu
 
-`data/snapshots/` altindaki ornekler **sentetiktir** (gercek Beko verisi degil,
-`_note` ile isaretli). Gercek finansal veri paylasilmaz; `.gitignore` xlsx
-kaynak/ciktilari haric tutar. Gercek kayit icin kaynak dosyalardan `extract`
-calistirilir.
+`data/snapshots/` altinda **gercek aylik kayitlar** tutulur (kullanici karari;
+depo ozel). Kaynak/cikti xlsx dosyalari `.gitignore` ile haric tutulur; kayitlar
+kaynak dosyalardan `extract` ile yeniden uretilebilir. Depo gorunurlugu
+degisecekse snapshot'lar cikarilmalidir.
+
+Citi pool katilimcilari `schema.POOL_PARTICIPANT_MAP` ile istirak koduna
+baglanir (13 LE -> C746; HARIC olanlar C746'ya katilmaz; eslesmeyen isim
+uyari uretir ve kullaniciya sorulur).
 
 ## Dogrulama
 

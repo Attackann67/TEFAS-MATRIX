@@ -67,6 +67,60 @@ def segment_of(code: str) -> str:
 
 SEGMENTS = ["Istirakler", "Arcelik", "Pazarlama"]
 
+# --- Citi pool katilimcisi -> istirak kodu (eslesme-tablosu.md) --------------
+# 13 LE katilimcisi C746 konsolidesine baglanir (LE kodu notta); grup tarafi
+# dogrudan kendi koduna. HARIC = cash dosyasi disi; C746 pool toplamina KATILMAZ
+# (International SA, Europe BV JV, Intermedia, Retail Holdings, SA Organizacni,
+# Slovakia). Eslesme normalize edilmis isim on-eki ile yapilir; sira onemli
+# (uzun on-ek once).
+POOL_PARTICIPANT_MAP = [
+    # grup tarafi (dogrudan)
+    ("arcelik anonim", "E046", None),
+    ("arcelik pazarlama", "E601", None),
+    ("beko us inc", "E586", None),
+    ("beko a and nz", "C328", None),
+    ("beko b.v", "E236", None),
+    # C746 LE'leri (eslesen 13)
+    ("beko plc", "C746", "C500"),
+    ("beko france", "C746", "E504"),
+    ("grundig multimedia", "C746", "E419"),
+    ("beko deutschland", "C746", "E671"),
+    ("beko austria", "C746", "E244"),
+    ("beko switzerland", "C746", "E676"),
+    ("beko netherlands", "C746", "E739"),
+    ("grundig nordic no", "C746", "E426"),
+    ("grundig nordic ab", "C746", "E429"),
+    ("beko italy", "C746", "E265"),
+    ("beko belgium", "C746", "E738"),
+    ("beko-home appliances portugal", "C746", "E675"),
+    ("beko electronics espana", "C746", "E167"),
+    # cash dosyasi disi -> ayri goster, C746'ya KATMA
+    ("beko international sa", "HARIC", None),
+    ("beko europe bv", "HARIC", None),
+    ("grundig intermedia", "HARIC", None),
+    ("retail holdings", "HARIC", None),
+    ("beko sa organizacni", "HARIC", None),
+    ("beko slovakia", "HARIC", None),
+]
+
+_TR_FOLD = str.maketrans({"ş": "s", "Ş": "s", "ı": "i", "İ": "i", "ğ": "g", "Ğ": "g",
+                          "ü": "u", "Ü": "u", "ö": "o", "Ö": "o", "ç": "c", "Ç": "c"})
+
+
+def norm_name(s) -> str:
+    """Isim normalizasyonu: kirp, Turkce karakter katla, kucult."""
+    return str(s or "").strip().replace("i̇", "i").translate(_TR_FOLD).lower()
+
+
+def pool_participant_entity(firm: str) -> tuple[str | None, str | None]:
+    """Katilimci adi -> (istirak kodu | 'HARIC' | None, LE kodu notu)."""
+    n = norm_name(firm)
+    for prefix, code, le in POOL_PARTICIPANT_MAP:
+        if n.startswith(prefix):
+            return code, le
+    return None, None
+
+
 # --- Renk paleti (SKILL kirmizi cizgiler + formuller.md) ---------------------
 C_HEADER = "FF002060"      # baslik dolgu (lacivert)
 C_HEADER_TXT = "FFFFFFFF"  # baslik yazi (beyaz)

@@ -76,7 +76,7 @@ Her analiz sonrasi snapshot guncellenir; dashboard bu dosyalardan beslenir.
 - **Kategori Trend**: 10 kod x ay; vadesiz MoM sicramasi sari
 - **Istirak Matris**: istirak x ay + vadesiz orani + SORGULA bayragi (esik hucresi)
 - **Nakit vs Overdue**: likit mn EUR / overdue mn EUR orani; kesit farki her zaman etikette
-- **Citi Pool**: katilimci bakiyeleri + "Istiraklerin Pool = Grand Total - Arcelik"
+- **Citi Pool**: katilimci bakiyeleri + eslesen istirak kodu (13 LE -> C746; HARIC ayri) + kod bazli SUMIF ara toplamlar + "Istiraklerin Pool = Grand Total - Arcelik". Eslesmeyen katilimci sari isaretlenir ve kullaniciya sorulur; `citi_pool_eur` extract sirasinda istirak kaydina yazilir
 - **Acik Sorgular**: kim, ne zaman soruldu, cevap durumu
 - **Kontrol**: detay vs kaynak, Sheet2 gap, PASS/FAIL
 

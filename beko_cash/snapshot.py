@@ -140,6 +140,10 @@ def advisories(snap: dict) -> List[str]:
         if ("lc" in st or "teminat" in st or "bloke" in st) and entity_groups(ent)["Diger"] == 0:
             notes.append(f"{month}/{code} {name}: status blokeye isaret ediyor ama bloke kalem yok; "
                          f"10202/10205 reclass gerekebilir")
+    # Pool: eslesmeyen katilimci varsa kullaniciya sor (SORMADAN eslestirme yok)
+    for firm in (snap.get("pool") or {}).get("unmatched", []) or []:
+        notes.append(f"{month}: Citi pool katilimcisi eslesmedi: '{firm}' - kullaniciya sor, "
+                     f"eslesme-tablosu.md guncellenmeli")
     return notes
 
 

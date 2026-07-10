@@ -1,85 +1,369 @@
 {
   "month": "2026-05",
   "eurtry": 53.1224,
-  "source_total_tl": 37850502600.0,
+  "source_total_tl": 55630216242.99,
   "entities": {
-    "E046": {
-      "name": "Arcelik A.S. (ORNEK)",
-      "tot_tl": 25250000000.0,
+    "C687": {
+      "name": "Arcelik Hitachi Home Appliances B.V. (Consolidated)",
+      "tot_tl": 7711566996.0,
       "cat_tl": {
-        "10201": 8000000000.0,
-        "10203": 2000000000.0,
-        "10204": 15000000000.0,
-        "104": 250000000.0
-      }
-    },
-    "E601": {
-      "name": "Pazarlama A.S. (ORNEK)",
-      "tot_tl": 1635000000.0,
-      "cat_tl": {
-        "10201": 600000000.0,
-        "10204": 1000000000.0,
-        "105": 35000000.0
-      }
-    },
-    "E625": {
-      "name": "Beko Gulf (ORNEK)",
-      "tot_tl": 2125000000.0,
-      "cat_tl": {
-        "10201": 1750000000.0,
-        "10204": 375000000.0
+        "100": 3452281.77,
+        "10201": 143308373.37,
+        "10203": 2402856565.94,
+        "10204": 5154448584.48,
+        "104": 7402891.84,
+        "109": 98298.61
       },
-      "overdue_keur": 17017,
-      "overdue_prev_keur": 13378,
-      "match": "Olasi",
-      "status": "LC teminat - netting",
-      "sorgu": {
-        "gonderildi": "2026-07-03",
-        "cevap": null,
-        "ozet": "Vadesiz USD bakiye sorgusu."
-      }
+      "overdue_keur": 422.96795,
+      "overdue_prev_keur": 1401.80233,
+      "match": "Olası"
     },
-    "C746": {
-      "name": "Beko Europe konsolide (ORNEK)",
-      "tot_tl": 8591500000.0,
+    "C471": {
+      "name": "Defy (Consolidated)",
+      "tot_tl": 1106726737.78,
       "cat_tl": {
-        "100": 5000000.0,
-        "10201": 1300000000.0,
-        "10203": 5400000000.0,
-        "10204": 1860000000.0,
-        "10205": 18000000.0,
-        "105": 8500000.0
+        "100": 143437.46,
+        "10201": 881602335.25,
+        "10204": 222910963.07,
+        "10205": 2070002.0
       },
-      "overdue_keur": 292263,
-      "match": "Kesin",
-      "status": "konsolide - LE kirilimi ayri"
+      "overdue_keur": 4676.04051,
+      "overdue_prev_keur": 6529.05069000001,
+      "match": "Kesin"
     },
-    "E653": {
-      "name": "Beko Morocco (ORNEK)",
-      "tot_tl": 190000000.0,
+    "E642": {
+      "name": "Singer Bangladesh",
+      "tot_tl": 729696765.21,
       "cat_tl": {
-        "10201": 190000000.0
+        "100": 88305.0,
+        "10201": 718070432.79,
+        "104": 3801514.57,
+        "109": 7736512.84
       },
-      "overdue_keur": 10255,
-      "match": "Kesin",
-      "status": "MAD kisitli",
-      "sorgu": {
-        "gonderildi": "2026-07-03",
-        "cevap": "2026-07-08",
-        "ozet": "Vadesiz oran %100; yerel vadeli imkani teyit."
-      }
+      "overdue_keur": 3221.48633,
+      "overdue_prev_keur": 3165.6782,
+      "match": "Kesin"
+    },
+    "C606": {
+      "name": "Dawlance (Consolidated)",
+      "tot_tl": 1143082532.32,
+      "cat_tl": {
+        "100": 921369.83,
+        "10204": 285774878.67,
+        "101": 780063334.06,
+        "10201": 76322949.76
+      },
+      "overdue_keur": 16203.88239,
+      "overdue_prev_keur": 16621.86999,
+      "match": "Kesin"
+    },
+    "C731": {
+      "name": "IHP Appliances Sales LLC (Consolidated)",
+      "tot_tl": 156858624.4,
+      "cat_tl": {
+        "10201": 86537716.98,
+        "10204": 70249558.38,
+        "104": 71349.04
+      },
+      "overdue_keur": 3985.39603,
+      "overdue_prev_keur": 3120.83133,
+      "match": "Kesin"
+    },
+    "E721": {
+      "name": "BEKO AZERBAYCAN MMC",
+      "tot_tl": 128570858.97,
+      "cat_tl": {
+        "10201": 8614861.81,
+        "10204": 119955997.16
+      },
+      "overdue_keur": 1095.14856,
+      "overdue_prev_keur": 485.0203,
+      "match": "Kesin"
+    },
+    "C328": {
+      "name": "Beko Australia (Consolidated)",
+      "tot_tl": 165177795.86,
+      "cat_tl": {
+        "10204": 165177795.86
+      },
+      "overdue_keur": 19265.82135,
+      "overdue_prev_keur": 20666.76037,
+      "match": "Olası",
+      "citi_pool_eur": -24763464.0
+    },
+    "C329": {
+      "name": "Beko China  (Consolidated)",
+      "tot_tl": 622256489.88,
+      "cat_tl": {
+        "10204": 621967357.86,
+        "104": 289132.03
+      },
+      "overdue_keur": 5310.03034,
+      "overdue_prev_keur": 5078.25483,
+      "match": "Olası"
+    },
+    "C585": {
+      "name": "Beko Indonesia (Consolidated)",
+      "tot_tl": 73859434.8,
+      "cat_tl": {
+        "100": 12154.38,
+        "10201": 73847280.42
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E236": {
+      "name": "Beko B.V.",
+      "tot_tl": 3834331888.38,
+      "cat_tl": {
+        "10201": 3834331888.38
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null,
+      "citi_pool_eur": -52357155.0
     },
     "E247": {
-      "name": "Beko LLC (ORNEK)",
-      "tot_tl": 59002600.0,
+      "name": "Beko LLC",
+      "tot_tl": 59260509.3,
       "cat_tl": {
-        "10201": 20000000.0,
-        "10204": 39000000.0,
-        "104": 2600.0
+        "10201": 20141308.37,
+        "10204": 39116615.55,
+        "104": 2585.37
       },
-      "overdue_keur": 5072,
+      "overdue_keur": 5071.89666,
+      "overdue_prev_keur": 28152.74767,
+      "match": "Kesin"
+    },
+    "E476": {
+      "name": "Beko Egypt",
+      "tot_tl": 438376467.1,
+      "cat_tl": {
+        "100": 10523471.05,
+        "10201": 91429598.78,
+        "10204": 336248709.27,
+        "109": 174688.0
+      },
+      "overdue_keur": 4280.03265,
+      "overdue_prev_keur": 5710.74751,
+      "match": "Kesin"
+    },
+    "E538": {
+      "name": "Beko Hong Kong",
+      "tot_tl": 54919206.79,
+      "cat_tl": {
+        "10204": 54919206.79
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E576": {
+      "name": "Beko Thai",
+      "tot_tl": 89599286.21,
+      "cat_tl": {
+        "10201": 496715.25,
+        "10204": 89102570.96
+      },
+      "overdue_keur": 2687.78058,
+      "overdue_prev_keur": 2644.96157,
+      "match": "Kesin"
+    },
+    "E583": {
+      "name": "Beko Malaysia",
+      "tot_tl": 243371.6,
+      "cat_tl": {
+        "10201": 79777.21,
+        "10204": 163594.39
+      },
+      "overdue_keur": 1361.9567,
+      "overdue_prev_keur": 1334.29159,
+      "match": "Kesin"
+    },
+    "E584": {
+      "name": "Vietbeko",
+      "tot_tl": 5767629.06,
+      "cat_tl": {
+        "10204": 5767629.06
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E586": {
+      "name": "Beko USA",
+      "tot_tl": 8198314.49,
+      "cat_tl": {
+        "10201": 8198314.49
+      },
+      "overdue_keur": 62034.44441,
+      "overdue_prev_keur": 59950.14153,
       "match": "Kesin",
-      "status": "RUB transfer kisiti"
+      "citi_pool_eur": -36303448.0
+    },
+    "E625": {
+      "name": "Beko Gulf",
+      "tot_tl": 2123915923.31,
+      "cat_tl": {
+        "10201": 1749597738.0,
+        "10204": 374318185.31
+      },
+      "overdue_keur": 17017.10825,
+      "overdue_prev_keur": 13378.33436,
+      "match": "Olası"
+    },
+    "E626": {
+      "name": "Arch R&D",
+      "tot_tl": 9906093.41,
+      "cat_tl": {
+        "100": 17510.66,
+        "10204": 9888582.75
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E654": {
+      "name": "Beko Apac",
+      "tot_tl": 7269534.35,
+      "cat_tl": {
+        "10204": 7269534.35
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E641": {
+      "name": "Beko Bagladesh BV",
+      "tot_tl": 445231182.78,
+      "cat_tl": {
+        "10201": 445231182.78
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E655": {
+      "name": "Beko Philippines",
+      "tot_tl": 26332984.26,
+      "cat_tl": {
+        "100": 90446.64,
+        "10201": 26242537.62
+      },
+      "overdue_keur": 851.46044,
+      "overdue_prev_keur": 834.1325,
+      "match": "Kesin"
+    },
+    "E656": {
+      "name": "Beko Central Asia",
+      "tot_tl": 20422665.32,
+      "cat_tl": {
+        "10201": 919737.0,
+        "10204": 19502928.32
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E719": {
+      "name": "Beko Egypt Home Appliances Industries LLC",
+      "tot_tl": 460804480.58,
+      "cat_tl": {
+        "100": 977751.43,
+        "10201": 39287231.71,
+        "10204": 419996399.34,
+        "109": 543098.1
+      },
+      "overdue_keur": 43789.16684,
+      "overdue_prev_keur": 41906.7254699998,
+      "match": "Kesin"
+    },
+    "E782": {
+      "name": "Beko Gulf DMCC.",
+      "tot_tl": 39454054.86,
+      "cat_tl": {
+        "10201": 39454054.86
+      },
+      "overdue_keur": null,
+      "overdue_prev_keur": null
+    },
+    "E768": {
+      "name": "Beko Maghreb Sarl.",
+      "tot_tl": 106438273.73,
+      "cat_tl": {
+        "10201": 106438273.73
+      },
+      "overdue_keur": 703.82766,
+      "overdue_prev_keur": 510.38776,
+      "match": "Kesin"
+    },
+    "E801": {
+      "name": "Beko AE LLCBeko AE LLC",
+      "tot_tl": 285027375.67,
+      "cat_tl": {
+        "10201": 285027375.67
+      },
+      "overdue_keur": 4054.71659,
+      "overdue_prev_keur": 4121.55373,
+      "match": "Kesin"
+    },
+    "E653": {
+      "name": "Beko Morocco",
+      "tot_tl": 190294534.6,
+      "cat_tl": {
+        "10201": 190294534.6
+      },
+      "overdue_keur": 10255.01968,
+      "overdue_prev_keur": 10635.31623,
+      "match": "Kesin"
+    },
+    "E802": {
+      "name": "Beko Canada",
+      "tot_tl": 75830202.61,
+      "cat_tl": {
+        "10201": 37561686.61,
+        "10204": 38268516.0
+      },
+      "overdue_keur": 5121.32155,
+      "overdue_prev_keur": 5395.91923,
+      "match": "Kesin"
+    },
+    "C746": {
+      "name": "Beko Europe ( Arcelik Consolidated)",
+      "tot_tl": 8624135666.97,
+      "cat_tl": {
+        "10201": 1293478470.29,
+        "10202": 43833.31,
+        "10203": 5430939009.15,
+        "10204": 1865610998.89,
+        "10205": 17894917.91,
+        "104": 4721.99,
+        "105": 8537581.51,
+        "100": 4535813.56,
+        "109": 3090320.37
+      },
+      "overdue_keur": 320713.552709999,
+      "overdue_prev_keur": 301388.34159,
+      "match": "Kısmi - isim bazlı",
+      "citi_pool_eur": -514260.0
+    },
+    "E046": {
+      "name": "Arçelik A.Ş.",
+      "tot_tl": 25251289327.5,
+      "cat_tl": {
+        "10201": 4440196233.74,
+        "10203": 19061410570.65,
+        "10204": 1706751142.15,
+        "104": 16946121.69,
+        "109": 1791.7,
+        "105": 25983467.57
+      },
+      "citi_pool_eur": 149938904.0
+    },
+    "E601": {
+      "name": "Pazarlama A.Ş.",
+      "tot_tl": 1635371034.89,
+      "cat_tl": {
+        "100": 93435.11,
+        "104": 5165833.51,
+        "10201": 119906453.46,
+        "10204": 891604836.98,
+        "105": 618600475.83
+      },
+      "citi_pool_eur": 82665.0
     }
   },
   "pool": {
@@ -87,15 +371,44 @@
     "arcelik_eur": 149938904,
     "participants": {
       "ARCELIK ANONIM SIRKETI": 149938904,
+      "BEKO INTERNATIONAL SA (eski Indesit Co Int. Businesssa)": 81006293,
       "BEKO PLC": 36358061,
       "BEKO FRANCE SAS": 25328920,
       "BEKO EUROPE BV": 18347298,
-      "GRUNDIG MULTIMEDIA AG": 7548579
-    }
+      "GRUNDIG MULTIMEDIA AG": 7548579,
+      "BEKO DEUTSCHLAND GESELLSCHAFT MIT B": 6589172,
+      "BEKO AUSTRIA AG": 4464217,
+      "Beko Switzerland GmbH": 1881812,
+      "ARCELIK PAZARLAMA AS": 82665,
+      "BEKO NETHERLANDS BV": -1126800,
+      "GRUNDIG NORDIC AB": -2839565,
+      "BEKO SLOVAKIA SRO": -3293686,
+      "BEKO ITALY SRL": -3607933,
+      "BEKO BELGIUM NV": -4521174,
+      "RETAIL HOLDINGS BHOLD BV": -7440163,
+      "BEKO SA ORGANIZACNI SLOZKA": -9953829,
+      "BEKO-HOME APPLIANCES PORTUGAL UNIPE": -12737127,
+      "GRUNDIG NORDIC NO AS": -16055644,
+      "BEKO A AND NZ PTY LTD": -24763464,
+      "GRUNDIG INTERMEDIA GMBH": -34871728,
+      "BEKO US INC": -36303448,
+      "BEKO ELECTRONICS ESPANA S.L.": -41796778,
+      "Beko B.V.": -52357155
+    },
+    "by_entity_eur": {
+      "C328": -24763464.0,
+      "C746": -514260.0,
+      "E046": 149938904.0,
+      "E236": -52357155.0,
+      "E586": -36303448.0,
+      "E601": 82665.0,
+      "HARIC": 43794185.0
+    },
+    "unmatched": []
   },
   "checks": {
     "detail_vs_source": 0,
-    "sheet2_gap": 11386549.99
-  },
-  "_note": "SENTETIK ORNEK - gercek Beko verisi degil. Gercek kayit icin: python -m beko_cash extract"
+    "sheet2_gap": 11386549.99,
+    "detail_total_tl": 55630216242.99
+  }
 }
