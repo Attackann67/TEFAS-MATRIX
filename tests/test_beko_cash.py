@@ -105,3 +105,17 @@ def test_dashboard_build(tmp_path):
         for row in grup.iter_rows() for c in row
     )
     assert has_sumifs
+
+
+def test_webdash_render(tmp_path):
+    from beko_cash import webdash
+    snaps = [_snap("2026-04", None), _snap("2026-05")]
+    out = webdash.write(snaps, tmp_path / "d.html")
+    html = out.read_text(encoding="utf-8")
+    assert "__DATA__" not in html          # veri gomuldu
+    assert '"last": "2026-05"' in html or '"last":"2026-05"' in html
+    assert "Beko Cash Dashboard" in html
+    assert "data-theme" in html            # tema override
+    data = webdash.build_data(snaps)
+    assert data["months"] == ["2026-04", "2026-05"]
+    assert data["segments"]["2026-05"]["Arcelik"] == 600.0

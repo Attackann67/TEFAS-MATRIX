@@ -121,6 +121,7 @@ python -m beko_cash validate              # kontrol-listesi kurallari
 python -m beko_cash build --out Beko_Cash_Dashboard_2026-05.xlsx
 python /mnt/skills/public/xlsx/scripts/recalc.py Beko_Cash_Dashboard_2026-05.xlsx  # zorunlu
 python -m beko_cash summary                # insana okunur ozet
+python -m beko_cash web --out dash.html    # tek dosyalik HTML dashboard (tarayici)
 python -m beko_cash new --month 2026-06 --eurtry 53.50   # bos ay iskelesi
 ```
 

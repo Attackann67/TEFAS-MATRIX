@@ -22,7 +22,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import compute, dashboard, extract, snapshot
+from . import compute, dashboard, extract, snapshot, webdash
 
 DEFAULT_SNAP = ".claude/skills/beko-cash-dashboard/data/snapshots"
 
@@ -85,6 +85,12 @@ def cmd_summary(args):
     print(compute.summary(snaps))
 
 
+def cmd_web(args):
+    snaps = _load(args.snapshots)
+    out = webdash.write(snaps, args.out)
+    print(f"[ok] {len(snaps)} ay -> {out} (tarayicida ac)")
+
+
 def cmd_extract(args):
     snaps_by_month = extract.extract_from_detail(args.detail, args.sheet)
     print(f"[ok] {len(snaps_by_month)} ay cikarildi: {', '.join(sorted(snaps_by_month))}")
@@ -129,6 +135,11 @@ def main(argv=None):
     s = sub.add_parser("summary", help="insana okunur ozet")
     s.add_argument("--snapshots", default=DEFAULT_SNAP)
     s.set_defaults(func=cmd_summary)
+
+    w = sub.add_parser("web", help="tek dosyalik HTML dashboard uret")
+    w.add_argument("--snapshots", default=DEFAULT_SNAP)
+    w.add_argument("--out", default="beko_cash_dashboard.html")
+    w.set_defaults(func=cmd_web)
 
     e = sub.add_parser("extract", help="kaynak Excel'lerden aylik snapshot uret")
     e.add_argument("--detail", required=True, help="Hesap Detay tarzi trend/detay dosyasi")

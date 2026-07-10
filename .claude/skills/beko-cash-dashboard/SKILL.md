@@ -28,10 +28,18 @@ python -m beko_cash build --out Beko_Cash_Dashboard_<ay>.xlsx
 # 4) ZORUNLU: formulleri dogrula (total_errors 0 olmadan teslim yok)
 python /mnt/skills/public/xlsx/scripts/recalc.py Beko_Cash_Dashboard_<ay>.xlsx
 
+# 5) Web dashboard (tarayicida acilan tek dosyalik HTML; Excel istemeyen kullanim)
+python -m beko_cash web --out beko_cash_dashboard.html
+
 # Ek: yeni ay iskelesi / insana okunur ozet
 python -m beko_cash new --month 2026-06 --eurtry 53.50
 python -m beko_cash summary
 ```
+
+Web dashboard KPI'lar, segment trendi, kategori kirilimi, Citi pool, nakit-overdue
+karsilastirmasi ve aranabilir istirak matrisini icerir; acik/koyu tema destekler.
+Kullanici Excel acamiyorsa veya "dashboard olmali" diyorsa `web` ciktisini uret ve
+Artifact olarak yayinla.
 
 Kayitlar `data/snapshots/YYYY-MM.json` altinda tutulur (kayit sistemi = tek
 gercek). Dashboard bu dosyalardan uretilir; kaynak Excel'ler ucsa bile kayittan
