@@ -1,0 +1,101 @@
+{
+  "month": "2026-04",
+  "eurtry": null,
+  "source_total_tl": 36714987522.0,
+  "entities": {
+    "E046": {
+      "name": "Arcelik A.S. (ORNEK)",
+      "tot_tl": 24492500000.0,
+      "cat_tl": {
+        "10201": 7760000000.0,
+        "10203": 1940000000.0,
+        "10204": 14550000000.0,
+        "104": 242500000.0
+      }
+    },
+    "E601": {
+      "name": "Pazarlama A.S. (ORNEK)",
+      "tot_tl": 1585950000.0,
+      "cat_tl": {
+        "10201": 582000000.0,
+        "10204": 970000000.0,
+        "105": 33950000.0
+      }
+    },
+    "E625": {
+      "name": "Beko Gulf (ORNEK)",
+      "tot_tl": 2061250000.0,
+      "cat_tl": {
+        "10201": 1697500000.0,
+        "10204": 363750000.0
+      },
+      "overdue_keur": 17017,
+      "overdue_prev_keur": 13378,
+      "match": "Olasi",
+      "status": "LC teminat - netting",
+      "sorgu": {
+        "gonderildi": "2026-07-03",
+        "cevap": null,
+        "ozet": "Vadesiz USD bakiye sorgusu."
+      }
+    },
+    "C746": {
+      "name": "Beko Europe konsolide (ORNEK)",
+      "tot_tl": 8333755000.0,
+      "cat_tl": {
+        "100": 4850000.0,
+        "10201": 1261000000.0,
+        "10203": 5238000000.0,
+        "10204": 1804200000.0,
+        "10205": 17460000.0,
+        "105": 8245000.0
+      },
+      "overdue_keur": 292263,
+      "match": "Kesin",
+      "status": "konsolide - LE kirilimi ayri"
+    },
+    "E653": {
+      "name": "Beko Morocco (ORNEK)",
+      "tot_tl": 184300000.0,
+      "cat_tl": {
+        "10201": 184300000.0
+      },
+      "overdue_keur": 10255,
+      "match": "Kesin",
+      "status": "MAD kisitli",
+      "sorgu": {
+        "gonderildi": "2026-07-03",
+        "cevap": "2026-07-08",
+        "ozet": "Vadesiz oran %100; yerel vadeli imkani teyit."
+      }
+    },
+    "E247": {
+      "name": "Beko LLC (ORNEK)",
+      "tot_tl": 57232522.0,
+      "cat_tl": {
+        "10201": 19400000.0,
+        "10204": 37830000.0,
+        "104": 2522.0
+      },
+      "overdue_keur": 5072,
+      "match": "Kesin",
+      "status": "RUB transfer kisiti"
+    }
+  },
+  "pool": {
+    "grand_total_eur": 79877427,
+    "arcelik_eur": 149938904,
+    "participants": {
+      "ARCELIK ANONIM SIRKETI": 149938904,
+      "BEKO PLC": 36358061,
+      "BEKO FRANCE SAS": 25328920,
+      "BEKO EUROPE BV": 18347298,
+      "GRUNDIG MULTIMEDIA AG": 7548579
+    }
+  },
+  "checks": {
+    "detail_vs_source": 0,
+    "sheet2_gap": null
+  },
+  "_note": "SENTETIK ORNEK - gercek Beko verisi degil. Gercek kayit icin: python -m beko_cash extract"
+}

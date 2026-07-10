@@ -86,3 +86,71 @@ portföy dağılımı tam, TOPLAM ≈ %100).
 ```bash
 python -m pytest tests/ -v          # fixture mevcutsa
 ```
+
+---
+
+# Beko Cash Dashboard (`beko_cash`)
+
+Beko Corporate Treasury **nakit-overdue kayit + analiz + dashboard** motoru.
+Aylik liquid assets formu, overdue listesi ve Citi pool raporunu isler; istirak
+bazli trend, atil nakit (SORGULA) analizi, nakit-overdue karsilastirmasi ve Citi
+pool takibini tek dosyada, **canli SUMIFS formullu** Excel olarak uretir.
+
+Claude Code uzerinden `beko-cash-dashboard` skill'i ile tetiklenir; komut
+satirindan da bagimsiz calisir.
+
+## Uc katman
+
+| Katman | Modul | Is |
+|---|---|---|
+| **Kayit** | `snapshot` | aylik `data/snapshots/YYYY-MM.json` oku/yaz/dogrula/iskele |
+| **Analiz** | `compute` | 4 grup + 10 kod turetimi, vadesiz %, SORGULA, MoM delta, trend |
+| **Cikarim** | `extract` | kaynak Excel'lerden (Hesap Detay / overdue / pool) snapshot uret |
+| **Dashboard** | `dashboard` | 10 sayfali, canli formullu, renk-kodlu Excel |
+
+## Kullanim
+
+```bash
+# Kaynak Excel'lerden aylik kayit uret (kolonlar baslik adindan bulunur)
+python -m beko_cash extract \
+    --detail <trend/Hesap_Detay>.xlsx --sheet "Hesap Detay" \
+    --overdue <Nakit_vs_Overdue>.xlsx --pool <Citi_Pool>.xlsx \
+    --month 2026-05 --eurtry 53.1224 --sheet2-gap 11386549.99
+
+python -m beko_cash validate              # kontrol-listesi kurallari
+python -m beko_cash build --out Beko_Cash_Dashboard_2026-05.xlsx
+python /mnt/skills/public/xlsx/scripts/recalc.py Beko_Cash_Dashboard_2026-05.xlsx  # zorunlu
+python -m beko_cash summary                # insana okunur ozet
+python -m beko_cash new --month 2026-06 --eurtry 53.50   # bos ay iskelesi
+```
+
+## Kayit (snapshot) semasi
+
+Istirak basina 10 kategori kodu (`cat_tl`) birincil; 4 grup (Vadesiz/Vadeli/
+Pool/Diger) buradan turetilir. Overdue (bin EUR), Citi pool, eslesme guveni
+(Kesin/Olasi/Eslesmedi), statu ve sorgu takibi ayni kayitta tutulur. Detay
+sayfa `data/snapshots/`; dashboard tamamen bu kayitlardan uretilir (kaynak
+Excel'ler ucsa bile yeniden uretilebilir).
+
+## Dashboard sayfalari
+
+Ozet · Girdi (mavi tek nokta) · Kayit Detay (SUMIFS omurgasi) · Kayit Entity ·
+Grup Trend (TL + mn EUR) · Kategori Trend (10 kod) · Istirak Matris (SORGULA
+bayragi) · Nakit vs Overdue (kesit farki etikette) · Citi Pool · Acik Sorgular
+· Kontrol (PASS/FAIL).
+
+Renk kurali: baslik #002060 · **mavi** dis kaynak girdi · siyah ayni sayfa
+formul · **yesil** capraz sayfa · **sari** dikkat. Kaynaksiz rakam yazilmaz.
+
+## Gizlilik
+
+`data/snapshots/` altindaki ornekler **sentetiktir** (gercek Beko verisi degil,
+`_note` ile isaretli). Gercek finansal veri paylasilmaz; `.gitignore` xlsx
+kaynak/ciktilari haric tutar. Gercek kayit icin kaynak dosyalardan `extract`
+calistirilir.
+
+## Dogrulama
+
+```bash
+python -m pytest tests/test_beko_cash.py -q
+```
